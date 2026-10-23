@@ -38,6 +38,7 @@ test("presenta el departamento y registra un interesado", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Departamento en Zapopan" })).toBeVisible();
   await expect(page.getByText("$3,450,000 MXN", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("2 recámaras", { exact: true })).toBeVisible();
+  await expect(page.locator(".location-note .ui-button")).toHaveCSS("color", "rgb(255, 255, 255)");
 
   await page.getByRole("button", { name: /Me interesa/ }).first().click();
   await page.getByLabel("Nombre").fill("Ana López");
@@ -52,6 +53,56 @@ test("presenta el departamento y registra un interesado", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Enviando…" })).toBeDisabled();
   await expect(page.getByRole("status")).toContainText("te contactaremos pronto");
 });
+
+test("cierra el formulario móvil al deslizar la manija hacia abajo", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "El gesto sólo existe en la hoja inferior móvil.");
+
+  await page.goto("/");
+  await page.locator(".mobile-cta").getByRole("button", { name: /Me interesa/ }).click();
+
+  const sheet = page.getByRole("dialog");
+  const handle = page.getByRole("button", { name: "Desliza hacia abajo para cerrar" });
+  await expect(sheet).toBeVisible();
+  const box = await handle.boundingBox();
+  expect(box).not.toBeNull();
+
+  const startX = box!.x + box!.width / 2;
+  const startY = box!.y + box!.height / 2;
+  await handle.dispatchEvent("pointerdown", {
+    pointerId: 7,
+    pointerType: "touch",
+    button: 0,
+    clientX: startX,
+    clientY: startY,
+  });
+  await page.evaluate(({ x, y }) => {
+    window.dispatchEvent(new PointerEvent("pointermove", {
+      bubbles: true,
+      pointerId: 7,
+      pointerType: "touch",
+      clientX: x,
+      clientY: y + 130,
+    }));
+    window.dispatchEvent(new PointerEvent("pointerup", {
+      bubbles: true,
+      pointerId: 7,
+      pointerType: "touch",
+      clientX: x,
+      clientY: y + 130,
+    }));
+  }, { x: startX, y: startY });
+
+  await page.waitForTimeout(230);
+  if (await sheet.count()) {
+    const sheetTop = await sheet.evaluate((element) => element.getBoundingClientRect().top);
+    const viewportHeight = await page.evaluate(() => window.innerHeight);
+    expect(sheetTop).toBeGreaterThanOrEqual(viewportHeight - 1);
+  }
+  await expect(sheet).toBeHidden();
+  await page.waitForTimeout(320);
+  await expect(sheet).toBeHidden();
+});
+
 test("muestra interesados recientes y filtra por nombre", async ({ page }) => {
   await page.route("**/api/v1/auth/session/", (route) =>
     route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ authenticated: true, username: "reviewer" }) }),

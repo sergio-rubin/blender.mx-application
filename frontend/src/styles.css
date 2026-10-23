@@ -105,44 +105,83 @@ img {
 }
 
 .site-header {
-  position: relative;
+  position: sticky;
+  top: 0;
   z-index: 40;
+  min-height: var(--header-height);
+  border-bottom: 1px solid transparent;
+  background: rgb(255 255 255 / 86%);
+  backdrop-filter: blur(16px) saturate(1.25);
+  transition: border-color 240ms ease, box-shadow 240ms ease, background 240ms ease;
+}
+
+.site-header.is-scrolled {
+  border-bottom-color: var(--line);
+  background: rgb(255 255 255 / 94%);
+  box-shadow: 0 12px 32px rgb(20 32 29 / 5%);
+}
+
+.header-inner {
   display: flex;
   min-height: var(--header-height);
   align-items: center;
   justify-content: space-between;
   padding: 0 6.25vw;
-  border-bottom: 1px solid var(--line);
-  background: rgb(255 255 255 / 94%);
 }
 
 .wordmark {
   display: inline-flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.72rem;
   min-height: 44px;
   color: var(--ink);
   text-decoration: none;
 }
 
-.wordmark span {
-  font-size: 1.55rem;
+.wordmark img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  transition: transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.wordmark:hover img,
+.wordmark:focus-visible img {
+  transform: rotate(-3deg) scale(1.06);
+}
+
+.wordmark-copy {
+  display: grid;
+  gap: 0.08rem;
+}
+
+.wordmark strong {
+  font-size: 1.08rem;
   font-weight: 600;
-  letter-spacing: 0.23em;
+  letter-spacing: 0.22em;
+  line-height: 1;
 }
 
-.wordmark i {
-  color: var(--copper);
-  font-family: var(--font-display);
-  font-size: 1.65rem;
-  font-style: normal;
-}
-
-.wordmark small {
+.wordmark-copy small {
+  color: var(--ink-soft);
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  font-size: 0.52rem;
   font-weight: 500;
-  letter-spacing: 0.38em;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: clamp(1rem, 2.5vw, 2.5rem);
+}
+
+.header-context {
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
 }
 
 .header-link,
@@ -154,6 +193,35 @@ img {
   font-size: 0.86rem;
   font-weight: 600;
   text-decoration: none;
+}
+
+.header-link {
+  gap: 0.55rem;
+  padding: 0 0.15rem;
+}
+
+.header-link svg {
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.header-link:hover svg,
+.header-link:focus-visible svg {
+  transform: translate(2px, -2px);
+}
+
+.header-link-dot {
+  width: 6px;
+  height: 6px;
+  border: 1px solid var(--agave);
+  background: transparent;
+  transform: rotate(45deg);
+  transition: background 220ms ease, transform 220ms ease;
+}
+
+.header-link:hover .header-link-dot,
+.header-link:focus-visible .header-link-dot {
+  background: var(--copper);
+  transform: rotate(135deg);
 }
 
 .header-link::after {
@@ -173,6 +241,26 @@ img {
 .header-link:focus-visible::after {
   transform: scaleX(1);
   transform-origin: left;
+}
+
+.header-progress {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 2px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.header-progress i {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, var(--agave) 0 86%, var(--copper) 86% 100%);
+  transform: scaleX(0);
+  transform-origin: left;
+  will-change: transform;
 }
 
 .route-enter-active,
@@ -413,6 +501,15 @@ img {
   transition: background 180ms ease, color 180ms ease, transform 140ms ease, box-shadow 180ms ease;
 }
 
+.ui-button .button-content > span[aria-hidden="true"] {
+  color: currentcolor;
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ui-button:hover:not(:disabled) .button-content > span[aria-hidden="true"] {
+  transform: translateX(4px);
+}
+
 .ui-button:hover:not(:disabled) {
   background: var(--agave-dark);
   box-shadow: 0 10px 24px rgb(31 98 76 / 16%);
@@ -604,7 +701,7 @@ img {
   font-size: 0.95rem;
 }
 
-.location-note span {
+.location-note div > span {
   color: var(--ink-soft);
   font-size: 0.82rem;
   line-height: 1.55;
@@ -676,6 +773,17 @@ img {
   border: 0;
   background: var(--white);
   box-shadow: var(--shadow-sheet);
+}
+
+.interest-sheet.is-dragging {
+  animation: none !important;
+  cursor: grabbing;
+  user-select: none;
+}
+
+.interest-sheet.is-snapping {
+  animation: none !important;
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .interest-sheet[data-state="open"] { animation: sheet-in 430ms cubic-bezier(0.22, 1, 0.36, 1); }
@@ -1205,12 +1313,13 @@ img {
 @media (max-width: 760px) {
   :root { --header-height: 66px; }
 
-  .site-header { padding: 0 1.2rem; }
-  .wordmark { gap: 0.65rem; }
-  .wordmark span { font-size: 1.15rem; }
-  .wordmark i { font-size: 1.25rem; }
-  .wordmark small { font-size: 0.5rem; letter-spacing: 0.25em; }
-  .header-link { font-size: 0.72rem; }
+  .header-inner { padding: 0 1rem; }
+  .wordmark { gap: 0.55rem; }
+  .wordmark img { width: 30px; height: 30px; }
+  .wordmark strong { font-size: 0.92rem; }
+  .wordmark-copy small { font-size: 0.45rem; }
+  .header-context { display: none; }
+  .header-link { gap: 0.45rem; font-size: 0.72rem; }
 
   .gallery-stage { aspect-ratio: 1.18 / 1; }
   .gallery-image { object-position: center center; }
@@ -1285,14 +1394,43 @@ img {
 
   .sheet-handle {
     position: absolute;
-    top: 0.8rem;
+    top: 0;
     left: 50%;
-    display: block;
+    display: grid;
+    width: 96px;
+    height: 38px;
+    padding: 0;
+    place-items: center;
+    border: 0;
+    background: transparent;
+    cursor: grab;
+    touch-action: none;
+    transform: translateX(-50%);
+  }
+
+  .sheet-handle:active { cursor: grabbing; }
+
+  .sheet-handle:focus-visible {
+    outline: none;
+  }
+
+  .sheet-handle span {
     width: 44px;
     height: 4px;
     border-radius: 99px;
     background: var(--line-strong);
-    transform: translateX(-50%);
+    transition: width 180ms ease, background 180ms ease;
+  }
+
+  .sheet-handle:hover span,
+  .sheet-handle:focus-visible span,
+  .interest-sheet.is-dragging .sheet-handle span {
+    width: 54px;
+    background: var(--agave);
+  }
+
+  .sheet-handle:focus-visible span {
+    box-shadow: 0 0 0 3px var(--white), 0 0 0 5px var(--copper);
   }
 
   .sheet-close { top: 1rem; right: 0.8rem; }
@@ -1346,7 +1484,7 @@ img {
 }
 
 @media (max-width: 380px) {
-  .wordmark small { display: none; }
+  .wordmark-copy small { display: none; }
   .mobile-cta > span { font-size: 0.82rem; }
 }
 
