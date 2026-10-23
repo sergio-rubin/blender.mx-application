@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /interesados
+
+Sitemap: https://blender-application.wacoding.org/sitemap.xml
